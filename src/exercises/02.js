@@ -4,6 +4,12 @@ import React from 'react'
 import {Switch} from '../switch'
 
 class Toggle extends React.Component {
+  static On = ({on, children}) => (on ? children : null)
+  static Off = ({on, children}) => (on ? null : children)
+  static Button = ({on, toggle, ...props}) => (
+    <Switch on={on} onClick={toggle} {...props} />
+  )
+
   // you can create function components as static properties!
   // for example:
   // static Candy = (props) => <div>CANDY! {props.children}</div>
@@ -34,6 +40,21 @@ class Toggle extends React.Component {
     //
     // 🐨 you'll want to completely replace the code below with the above logic.
     const {on} = this.state
+    const childrens = React.Children.map(this.props.children, i => i)
+    const children = [
+      childrens[2],
+      this.state.on == 'on' ? childrens[1] : childrens[2],
+    ]
+    console.log(' LOG ___ children ', children)
+    return React.Children.map(this.props.children, child =>
+      React.cloneElement(child, {
+        on: this.state.on,
+        toggle: this.toggle,
+      }),
+    )
+    return (
+      <Toggle.Button props={{on: on, toggle: this.props.toggle}} />
+    )
     return <Switch on={on} onClick={this.toggle} />
   }
 }
