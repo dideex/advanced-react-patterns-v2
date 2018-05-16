@@ -15,6 +15,8 @@ import {Switch} from '../switch'
 // 💰 Here's a little utility that might come in handy
 // const callAll = (...fns) => (...args) => fns.forEach(fn => fn && fn(...args))
 
+const callAll = (...fns) => (...args) => fns.forEach(fn => fn && fn(...args))
+
 class Toggle extends React.Component {
   state = {on: false}
   toggle = () =>
@@ -23,13 +25,19 @@ class Toggle extends React.Component {
       () => this.props.onToggle(this.state.on),
     )
   getStateAndHelpers() {
+    const {on} = this.state
     return {
-      on: this.state.on,
+      on: on,
       toggle: this.toggle,
       togglerProps: {
-        'aria-pressed': this.state.on,
+        'aria-pressed': on,
         onClick: this.toggle,
       },
+      getTogglerProps: ({onClick, ...args} = {}) => ({
+        onClick: callAll(onClick, this.toggle),
+        'aria-pressed': this.state.on,
+        ...args,
+      }),
     }
   }
   render() {
