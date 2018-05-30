@@ -3,8 +3,7 @@
 import React from 'react'
 import {Switch} from '../switch'
 
-const callAll = (...fns) => (...args) =>
-  fns.forEach(fn => fn && fn(...args))
+const callAll = (...fns) => (...args) => fns.forEach(fn => fn && fn(...args))
 
 // Render props allow users to be in control over the UI based on state.
 // State reducers allow users to be in control over logic based on actions.
@@ -27,10 +26,24 @@ class Toggle extends React.Component {
   static defaultProps = {
     initialOn: false,
     onReset: () => {},
+    stateReducer: props => console.log(' LOG ___ props ', props),
     // 🐨 let's add a default stateReducer here. It should return
     // the changes object as it is passed.
   }
   initialState = {on: this.props.initialOn}
+  initialSetState = (changes, callback) => {
+    this.setState(currentState => {
+      const changedObject =
+        typeof changes === 'function' ? changes(currentState) : changes
+      const reducedChanges = this.props.stateReducer(
+        currentState,
+        changedObject,
+      )
+      return Object.keys(reducedChanges).length? reducedChanges: null
+    }, callback)
+    // console.log(" LOG ___ props ", props )
+    // this.setState(this.props.stateReducer(props))
+  }
   state = this.initialState
   // 🐨 let's add a method here called `internalSetState`. It will simulate
   // the same API as `setState(updater, callback)`:
@@ -49,14 +62,13 @@ class Toggle extends React.Component {
   // 🐨 Finally, update all pre-existing instances of this.setState
   // to this.internalSetState
   reset = () =>
-    this.setState(this.initialState, () =>
-      this.props.onReset(this.state.on),
-    )
-  toggle = () =>
-    this.setState(
+    this.initialSetState(this.initialState, () => this.props.onReset(this.state.on))
+  toggle = props => {
+    this.initialSetState(
       ({on}) => ({on: !on}),
       () => this.props.onToggle(this.state.on),
     )
+  }
   getTogglerProps = ({onClick, ...props} = {}) => ({
     onClick: callAll(onClick, this.toggle),
     'aria-pressed': this.state.on,
@@ -122,9 +134,7 @@ class Usage extends React.Component {
                 <br />
               </div>
             ) : timesClicked > 0 ? (
-              <div data-testid="click-count">
-                Click count: {timesClicked}
-              </div>
+              <div data-testid="click-count">Click count: {timesClicked}</div>
             ) : null}
             <button onClick={toggle.reset}>Reset</button>
           </div>
