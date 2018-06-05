@@ -14,12 +14,13 @@ class Toggle extends React.Component {
   }
   initialState = {on: this.props.initialOn}
   state = this.initialState
-  internalSetState(changes, callback) {
+  internalSetState(changes, callback, type) {
     this.setState(state => {
       // handle function setState call
       const changesObject =
         typeof changes === 'function' ? changes(state) : changes
       // apply state reducer
+      if(type === "forced") return changesObject
       const reducedChanges =
         this.props.stateReducer(state, changesObject) || {}
       // 🐨  in addition to what we've done, let's pluck off the `type`
@@ -37,11 +38,12 @@ class Toggle extends React.Component {
       this.props.onReset(this.state.on),
     )
   // 🐨 accept a `type` property here and give it a default value
-  toggle = () =>
+  toggle = ({type}) =>
     this.internalSetState(
       // pass the `type` string to this object
       ({on}) => ({on: !on}),
       () => this.props.onToggle(this.state.on),
+      type
     )
   getTogglerProps = ({onClick, ...props} = {}) => ({
     // 🐨 change `this.toggle` to `() => this.toggle()`
